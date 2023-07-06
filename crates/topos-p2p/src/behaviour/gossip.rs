@@ -49,10 +49,6 @@ impl Behaviour {
 
     pub fn subscribe(&mut self) -> Result<(), &'static str> {
         self.gossipsub
-            .subscribe(&gossipsub::IdentTopic::new(TOPOS_GOSSIP))
-            .unwrap();
-
-        self.gossipsub
             .subscribe(&gossipsub::IdentTopic::new(TOPOS_ECHO))
             .unwrap();
 

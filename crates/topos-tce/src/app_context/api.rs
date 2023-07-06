@@ -17,9 +17,12 @@ impl AppContext {
                 certificate,
                 sender,
             } => {
+                // Assume that the client submitted the Certificate to everyone
+                let need_gossip = false;
+
                 _ = self
                     .tce_cli
-                    .broadcast_new_certificate(*certificate, true)
+                    .broadcast_new_certificate(*certificate, need_gossip)
                     .await;
 
                 _ = sender.send(Ok(()));

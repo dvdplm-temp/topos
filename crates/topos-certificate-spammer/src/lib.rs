@@ -280,7 +280,7 @@ pub async fn run(
         args
     );
 
-    // Is list of nodes is specified in the command line use them otherwise use
+    // If list of nodes is specified in the command line use them otherwise use
     // config file provided nodes
     let target_nodes = if let Some(nodes) = args.target_nodes {
         nodes
@@ -408,13 +408,13 @@ pub async fn run(
 
                 // Dispatch certs in this batch
                 for cert in batch {
-                    // Randomly choose target tce node for every certificate from related source_subnet_id connection list
-                    let target_node_connection = &target_node_connections[&cert.source_subnet_id]
-                        [rand::random::<usize>() % target_nodes.len()];
-                    dispatch(cert, target_node_connection)
-                        .instrument(Span::current())
-                        .with_current_context()
-                        .await;
+                    // Send the certificate to all the TCE participants
+                    for target_node in &target_node_connections[&cert.source_subnet_id] {
+                        dispatch(cert.clone(), target_node)
+                            .instrument(Span::current())
+                            .with_current_context()
+                            .await;
+                    }
                 }
             }
             .instrument(span)
