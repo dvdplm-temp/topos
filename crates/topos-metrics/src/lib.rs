@@ -4,6 +4,7 @@ use prometheus::{
 };
 
 use lazy_static::lazy_static;
+use std::collections::hash_map::HashMap;
 
 mod double_echo;
 mod p2p;
@@ -14,8 +15,24 @@ pub use p2p::*;
 pub use storage::*;
 
 lazy_static! {
-    pub static ref TOPOS_METRIC_REGISTRY: Registry =
-        Registry::new_custom(Some("topos".to_string()), None).unwrap();
+    pub static ref TOPOS_METRIC_REGISTRY: Registry = Registry::new_custom(
+        Some("topos".to_string()),
+        Some(HashMap::from([
+            (
+                "run_id".to_string(),
+                std::env::var("TOPOS_RUN_ID")
+                    .ok()
+                    .unwrap_or("default".to_string())
+            ),
+            (
+                "run_number".to_string(),
+                std::env::var("TOPOS_RUN_NUMBER")
+                    .ok()
+                    .unwrap_or("default".to_string())
+            )
+        ]))
+    )
+    .unwrap();
     pub static ref CERTIFICATE_RECEIVED_TOTAL: IntCounter = register_int_counter_with_registry!(
         "certificate_received_total",
         "Number of certificate received.",
@@ -45,7 +62,7 @@ lazy_static! {
     pub static ref CERTIFICATE_DELIVERY_LATENCY: Histogram = register_histogram_with_registry!(
         "double_echo_delivery_latency",
         "Latency to delivery.",
-        prometheus::linear_buckets(0., 2., 200).unwrap(),
+        prometheus::linear_buckets(0.1, 0.01, 500).unwrap(),
         TOPOS_METRIC_REGISTRY
     )
     .unwrap();
