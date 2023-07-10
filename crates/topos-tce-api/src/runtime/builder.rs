@@ -9,7 +9,7 @@ use topos_core::api::grpc::tce::v1::StatusResponse;
 use topos_tce_storage::StorageClient;
 
 use crate::{
-    graphql::builder::ServerBuilder as GraphQLBuilder, grpc::builder::ServerBuilder,
+    constant, graphql::builder::ServerBuilder as GraphQLBuilder, grpc::builder::ServerBuilder,
     metrics::builder::ServerBuilder as MetricsBuilder, Runtime, RuntimeClient, RuntimeEvent,
 };
 
@@ -67,7 +67,8 @@ impl RuntimeBuilder {
         impl Stream<Item = RuntimeEvent>,
         RuntimeContext,
     ) {
-        let (command_sender, internal_runtime_command_receiver) = mpsc::channel(2048);
+        let (command_sender, internal_runtime_command_receiver) =
+            mpsc::channel(*constant::GRPC_COMMAND_CHANNEL_SIZE);
         let (api_event_sender, api_event_receiver) = mpsc::channel(2048);
 
         let (health_reporter, tce_status, grpc) = ServerBuilder::default()
