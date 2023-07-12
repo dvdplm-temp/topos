@@ -14,7 +14,7 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tokio-stream = { workspace = true, features = ["sync"] }
 tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
-tracing.workspace = true
+tracing = { workspace = true, features = ["max_level_off", "release_max_level_off"] }
 
 tce_transport = { package = "topos-tce-transport", path = "../topos-tce-transport"}
 topos-core = { workspace = true, features = ["uci"] }

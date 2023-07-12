@@ -34,7 +34,7 @@ opentelemetry = { version = "0.19", features = ["rt-tokio", "metrics"] }
 opentelemetry-otlp = { version = "0.12", features = ["grpc-tonic", "metrics", "tls-roots"] }
 prometheus = "0.13.3"
 prometheus-client = "0.21"
-tracing = { version = "0.1", default-features = false }
+tracing = { version = "0.1", default-features = false, features = ["max_level_off", "release_max_level_off"] }
 tracing-attributes = "0.1"
 tracing-opentelemetry = "0.19"
 tracing-subscriber = { version = "0.3", default-features = false }

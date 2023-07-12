@@ -22,7 +22,7 @@ serde_json.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tonic.workspace = true
 tower.workspace = true
-tracing = { workspace = true, features = ["log"] }
+tracing = { workspace = true, features = ["log", "max_level_off", "release_max_level_off"] }
 tracing-opentelemetry.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter", "json", "ansi", "fmt"] }
 uuid.workspace = true
