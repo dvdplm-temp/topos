@@ -68,7 +68,7 @@ impl RuntimeBuilder {
         RuntimeContext,
     ) {
         let (command_sender, internal_runtime_command_receiver) =
-            mpsc::channel(*constant::GRPC_COMMAND_CHANNEL_SIZE);
+            mpsc::channel(*constant::API_COMMAND_CHANNEL_SIZE);
         let (api_event_sender, api_event_receiver) = mpsc::channel(2048);
 
         let (health_reporter, tce_status, grpc) = ServerBuilder::default()

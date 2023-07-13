@@ -1,5 +1,6 @@
 use crate::TaskStatus;
 use crate::{DoubleEchoCommand, SubscriptionsView};
+use ahash::RandomState;
 use std::collections::HashSet;
 use tce_transport::{ProtocolEvents, ReliableBroadcastParams};
 use tokio::sync::{mpsc, oneshot};
@@ -18,7 +19,7 @@ pub struct DoubleEcho {
     /// Channel to receive shutdown signal
     pub(crate) shutdown: mpsc::Receiver<oneshot::Sender<()>>,
     /// Delivered certificate ids to avoid processing twice the same certificate
-    delivered_certificates: HashSet<CertificateId>,
+    delivered_certificates: HashSet<CertificateId, RandomState>,
     /// The threshold parameters for the double echo
     pub params: ReliableBroadcastParams,
     /// The connection to the TaskManager to forward DoubleEchoCommand messages
@@ -46,7 +47,10 @@ impl DoubleEcho {
             event_sender,
             subscriptions: SubscriptionsView::default(),
             shutdown,
-            delivered_certificates: Default::default(),
+            delivered_certificates: HashSet::with_capacity_and_hasher(
+                10000000,
+                ahash::RandomState::new(),
+            ),
         }
     }
 

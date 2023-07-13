@@ -19,9 +19,9 @@ use topos_core::{
 use tracing::{error, info, info_span, warn, Instrument, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-const CERTIFICATE_OUTBOUND_CHANNEL_SIZE: usize = 100;
-const CERTIFICATE_INBOUND_CHANNEL_SIZE: usize = 100;
-const TCE_PROXY_COMMAND_CHANNEL_SIZE: usize = 100;
+const CERTIFICATE_OUTBOUND_CHANNEL_SIZE: usize = 10000;
+const CERTIFICATE_INBOUND_CHANNEL_SIZE: usize = 10000;
+const TCE_PROXY_COMMAND_CHANNEL_SIZE: usize = 100000;
 
 pub(crate) enum TceClientCommand {
     // Get head certificate that was sent to the TCE node for this subnet
