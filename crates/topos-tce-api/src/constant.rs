@@ -8,3 +8,5 @@ lazy_static! {
             .and_then(|s| s.parse().ok())
             .unwrap_or(2048);
 }
+
+

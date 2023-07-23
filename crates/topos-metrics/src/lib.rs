@@ -6,10 +6,12 @@ use prometheus::{
 use lazy_static::lazy_static;
 use std::collections::hash_map::HashMap;
 
+mod api;
 mod double_echo;
 mod p2p;
 mod storage;
 
+pub use api::*;
 pub use double_echo::*;
 pub use p2p::*;
 pub use storage::*;
