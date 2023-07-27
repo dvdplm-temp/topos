@@ -6712,6 +6712,7 @@ dependencies = [
  "clap 4.3.19",
  "futures",
  "hex",
+ "lazy_static",
  "opentelemetry",
  "rand 0.8.5",
  "rand_core 0.6.4",

@@ -10,8 +10,27 @@ use tokio::time::{self, Duration};
 use tokio_stream::StreamExt;
 use topos_core::uci::*;
 use topos_tce_proxy::client::{TceClient, TceClientBuilder};
-use tracing::{debug, error, info, info_span, Instrument, Span};
+use tracing::{debug, error, info, info_span, warn, Instrument, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    /// Size of the proof size
+    pub static ref PROOF_SIZE_BYTES: usize =
+        std::env::var("TOPOS_PROOF_SIZE_BYTES")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(1000);
+
+    /// Dummy proof with realistic size
+    pub static ref STARK_BLOB: Vec<u8> =
+        (0..*PROOF_SIZE_BYTES)
+           .map(|_| rand::random::<u8>())
+           .collect::<Vec<u8>>()
+           .try_into()
+           .expect("Valid byte array");
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -98,7 +117,7 @@ pub fn generate_test_certificate(
         generate_random_32b_array(),
         target_subnet_ids,
         0,
-        Vec::new(),
+        STARK_BLOB.clone(),
     )?;
     new_cert
         .update_signature(&source_subnet.signing_key)
@@ -371,7 +390,7 @@ pub async fn run(
             async {
                 info!("Starting batch {batch_number}");
 
-                let mut batch: Vec<Certificate> = Vec::new(); // Certificates for this batch
+                let mut batch: Vec<Certificate> = Vec::with_capacity(args.cert_per_batch as usize);
                 for b in 0..args.cert_per_batch {
                     // Randomize source subnet id
                     let source_subnet =
@@ -402,6 +421,12 @@ pub async fn run(
                                 continue;
                             }
                         };
+
+                    warn!(
+                        "Expected: {} - Actual: {}",
+                        *PROOF_SIZE_BYTES,
+                        new_cert.proof.len()
+                    );
                     debug!("New cert number {b} in batch {batch_number} generated");
                     batch.push(new_cert);
                 }
