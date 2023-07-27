@@ -59,11 +59,13 @@ impl IntoFuture for Task {
                         match msg {
                             DoubleEchoCommand::Echo { from_peer, .. } => {
                                 if let Some(Status::DeliveredWithReadySent) = self.broadcast_state.apply_echo(from_peer) {
+                                    warn!("Terminating task from Echo update");
                                     return (self.certificate_id, TaskStatus::Success);
                                 }
                             }
                             DoubleEchoCommand::Ready { from_peer, .. } => {
                                 if let Some(Status::DeliveredWithReadySent) = self.broadcast_state.apply_ready(from_peer) {
+                                    warn!("Terminating task from Ready update");
                                     return (self.certificate_id, TaskStatus::Success);
                                 }
                             }

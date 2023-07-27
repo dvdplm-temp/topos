@@ -5,7 +5,7 @@ use tokio::sync::mpsc;
 use topos_core::uci::Certificate;
 use topos_metrics::DOUBLE_ECHO_BROADCAST_FINISHED_TOTAL;
 use topos_p2p::PeerId;
-use tracing::{debug, info, warn};
+use tracing::{debug, warn};
 
 use crate::sampler::SubscriptionsView;
 
@@ -46,9 +46,11 @@ impl BroadcastState {
             delivery_time: time::SystemTime::now(),
         };
 
-        _ = state.event_sender.try_send(ProtocolEvents::Broadcast {
+        if let Err(e) = state.event_sender.try_send(ProtocolEvents::Broadcast {
             certificate_id: state.certificate.id,
-        });
+        }) {
+            warn!("Failed to notify one new Certificate to broadcast: {e}");
+        }
 
         if need_gossip {
             warn!("📣 Gossiping the Certificate {}", &state.certificate.id);
@@ -77,9 +79,11 @@ impl BroadcastState {
         // any Echo or Ready messages
         // Sending our Echo message
         if let Status::Pending = self.status {
-            _ = self.event_sender.try_send(ProtocolEvents::Echo {
+            if let Err(e) = self.event_sender.try_send(ProtocolEvents::Echo {
                 certificate_id: self.certificate.id,
-            });
+            }) {
+                warn!("Failed to send the Echo: {e}");
+            }
 
             self.status = Status::EchoSent;
             debug!(
@@ -98,8 +102,11 @@ impl BroadcastState {
             let event = ProtocolEvents::Ready {
                 certificate_id: self.certificate.id,
             };
+
             if let Err(e) = self.event_sender.try_send(event) {
-                warn!("Error sending Ready message: {}", e);
+                warn!("Failed to send the Ready: {}", e);
+            } else {
+                warn!("Published Ready!");
             }
 
             self.status = self.status.ready_sent();
@@ -125,23 +132,21 @@ impl BroadcastState {
             let duration = from.elapsed().unwrap();
             let d = duration;
 
-            info!(
+            warn!(
                 "Certificate {} got delivered in {:?}",
                 self.certificate.id, d
             );
 
-            debug!(
-                "📝 Accepted[{}]\t Delivery time: {:?}",
-                &self.certificate.id, d
-            );
-
             DOUBLE_ECHO_BROADCAST_FINISHED_TOTAL.inc();
 
-            _ = self
+            if let Err(e) = self
                 .event_sender
                 .try_send(ProtocolEvents::CertificateDelivered {
                     certificate: self.certificate.clone(),
-                });
+                })
+            {
+                warn!("Failed to notify one Certificate delivery: {e}");
+            }
 
             return Some(self.status);
         }

@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use tce_transport::{ProtocolEvents, ReliableBroadcastParams};
 use tokio::sync::{mpsc, oneshot};
 use topos_core::uci::{Certificate, CertificateId};
-
+use topos_metrics::CERTIFICATE_RECEIVED_TOTAL;
 use topos_p2p::PeerId;
 use tracing::{error, info, warn};
 
@@ -188,6 +188,8 @@ impl DoubleEcho {
             return;
         }
 
+        CERTIFICATE_RECEIVED_TOTAL.inc();
+
         if self.delivered_certificates.get(&cert.id).is_some() {
             self.event_sender
                 .try_send(ProtocolEvents::AlreadyDelivered {
@@ -225,13 +227,16 @@ impl DoubleEcho {
             );
             None
         } else {
-            _ = self
+            if let Err(e) = self
                 .task_manager_message_sender
                 .send(DoubleEchoCommand::Broadcast {
                     need_gossip: origin,
                     cert: certificate,
                 })
-                .await;
+                .await
+            {
+                warn!("Failed to send the Broadcast to the runtime: {e}");
+            }
 
             Some(true)
         }
@@ -254,25 +259,31 @@ impl DoubleEcho {
 impl DoubleEcho {
     pub async fn handle_echo(&mut self, from_peer: PeerId, certificate_id: CertificateId) {
         if self.delivered_certificates.get(&certificate_id).is_none() {
-            let _ = self
+            if let Err(e) = self
                 .task_manager_message_sender
                 .send(DoubleEchoCommand::Echo {
                     from_peer,
                     certificate_id,
                 })
-                .await;
+                .await
+            {
+                warn!("Failed to send the Echo to the runtime: {e}");
+            }
         }
     }
 
     pub async fn handle_ready(&mut self, from_peer: PeerId, certificate_id: CertificateId) {
         if self.delivered_certificates.get(&certificate_id).is_none() {
-            let _ = self
+            if let Err(e) = self
                 .task_manager_message_sender
                 .send(DoubleEchoCommand::Ready {
                     from_peer,
                     certificate_id,
                 })
-                .await;
+                .await
+            {
+                warn!("Failed to send the Ready to the runtime: {e}");
+            }
         }
     }
 }

@@ -18,7 +18,9 @@ use double_echo::DoubleEcho;
 use tce_transport::{ProtocolEvents, ReliableBroadcastParams};
 
 use topos_core::uci::{Certificate, CertificateId};
-use topos_metrics::DOUBLE_ECHO_COMMAND_CHANNEL_CAPACITY_TOTAL;
+use topos_metrics::{
+    CERTIFICATE_RECEIVED_FROM_API_TOTAL, DOUBLE_ECHO_COMMAND_CHANNEL_CAPACITY_TOTAL,
+};
 use topos_p2p::PeerId;
 use topos_tce_storage::StorageClient;
 use tracing::{debug, error, info};
@@ -176,6 +178,7 @@ impl ReliableBroadcastClient {
             DOUBLE_ECHO_COMMAND_CHANNEL_CAPACITY_TOTAL.inc();
         }
 
+        CERTIFICATE_RECEIVED_FROM_API_TOTAL.inc();
         info!("Send certificate to be broadcast");
         if broadcast_commands
             .send(DoubleEchoCommand::Broadcast {

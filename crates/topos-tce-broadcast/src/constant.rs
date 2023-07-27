@@ -24,8 +24,8 @@ lazy_static! {
         std::env::var("TOPOS_SUBSCRIPTION_VIEW_CHANNEL_SIZE")
             .ok()
             .and_then(|s| s.parse().ok())
-            .unwrap_or(2048);
-    /// Size of the channel to send updated subscriptions views to the double echo
+            .unwrap_or(32);
+    /// Size of the channel to notify task completions
     pub static ref BROADCAST_TASK_COMPLETION_CHANNEL_SIZE: usize =
         std::env::var("BROADCAST_TASK_COMPLETION_CHANNEL_SIZE")
             .ok()

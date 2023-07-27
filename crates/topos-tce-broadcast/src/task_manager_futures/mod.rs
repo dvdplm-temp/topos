@@ -124,9 +124,15 @@ impl TaskManager {
 
                 Some((certificate_id, status)) = self.running_tasks.next() => {
                     if status == TaskStatus::Success {
+                        warn!("Successfully terminated the task, remaining: {}", self.running_tasks.len());
                         self.tasks.remove(&certificate_id);
                         DOUBLE_ECHO_ACTIVE_TASKS_COUNT.dec();
-                        let _ = self.task_completion_sender.send((certificate_id, status)).await;
+                        if let Err(e) = self.task_completion_sender.send((certificate_id, status)).await {
+                            warn!("Failed to notify the successful task completion: {e}");
+                        }
+                    }
+                    else {
+                        warn!("Not done yet: {status:?}");
                     }
                 }
 
