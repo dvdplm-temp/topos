@@ -104,7 +104,12 @@ impl SubnetRuntimeProxy {
             let runtime_proxy = runtime_proxy.clone();
             let subnet_contract_address = subnet_contract_address.clone();
             tokio::spawn(async move {
-                let mut latest_acquired_subnet_block_number: i128 = -1;
+                let start_block = std::env::var("SUBNET_START_BLOCK")
+                    .ok()
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(-1);
+
+                let mut latest_acquired_subnet_block_number: i128 = start_block;
 
                 {
                     // To start producing certificates, we need to know latest delivered or pending certificate id from TCE
@@ -126,7 +131,7 @@ impl SubnetRuntimeProxy {
                                 let cert_id = certificate_and_position.map(|(id, _position)| id);
                                 let position: i128 = certificate_and_position
                                     .map(|(_id, position)| position as i128)
-                                    .unwrap_or(-1);
+                                    .unwrap_or(start_block);
                                 // Certificate generation is now ready to run
                                 certification.last_certificate_id = cert_id;
                                 latest_acquired_subnet_block_number = position;

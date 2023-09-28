@@ -93,11 +93,12 @@ impl Certification {
             generated_certificates.push(certificate);
         }
 
+        let start_block = std::env::var("SUBNET_START_BLOCK").ok();
         // Check for inconsistencies
         let is_genesis_certificate: bool = self
             .finalized_blocks
             .front()
-            .map(|b| b.number == 0)
+            .map(|b| b.number == 0 || start_block.is_some())
             .unwrap_or(false);
         let last_known_certificate_id = if is_genesis_certificate {
             // We are creating genesis certificate, there were no previous certificates

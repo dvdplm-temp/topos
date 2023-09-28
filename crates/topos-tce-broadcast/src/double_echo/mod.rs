@@ -229,7 +229,11 @@ impl DoubleEcho {
     /// - either submitted from API ( [tce_transport::TceCommands::Broadcast] command)
     /// - or received through the gossip (first step of protocol exchange)
     pub async fn broadcast(&mut self, cert: Certificate, origin: bool) {
-        info!("🙌 Starting broadcasting the Certificate {}", &cert.id);
+        info!(
+            "🙌 Starting broadcasting the Certificate {} from {}",
+            &cert.id.to_string()[..10],
+            &cert.source_subnet_id.to_string()[..10]
+        );
         if self.cert_pre_broadcast_check(&cert).is_err() {
             error!("Failure on the pre-check for the Certificate {}", &cert.id);
             self.event_sender
