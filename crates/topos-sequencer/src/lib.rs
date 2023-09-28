@@ -73,8 +73,18 @@ pub async fn launch(
         }
     };
 
-    let (http_endpoint, ws_endpoint) =
-        topos_sequencer_subnet_runtime::derive_endpoints(&config.subnet_jsonrpc_endpoint)?;
+    let (http_endpoint, ws_endpoint) = {
+        let (http, mut ws) =
+            topos_sequencer_subnet_runtime::derive_endpoints(&config.subnet_jsonrpc_endpoint)?;
+
+        // Possibility to override the ws json rpc endpoint
+        // ws endpoints are not always inferable the same way from the http endpoint (e.g. Infura)
+        ws = std::env::var("SUBNET_WS_JSONRPC_ENDPOINT")
+            .ok()
+            .unwrap_or(ws);
+
+        (http, ws)
+    };
 
     // Instantiate subnet runtime proxy, handling interaction with subnet node
     let subnet_runtime_proxy_worker = match SubnetRuntimeProxyWorker::new(
